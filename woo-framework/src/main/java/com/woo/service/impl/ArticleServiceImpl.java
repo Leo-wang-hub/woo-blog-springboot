@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.util.BeanUtil;
 import com.woo.constants.SystemCantants;
 import com.woo.domain.ResponseResult;
 import com.woo.domain.entity.Article;
+import com.woo.domain.entity.Category;
+import com.woo.domain.vo.ArticleDetailVo;
 import com.woo.domain.vo.ArticleListVo;
 import com.woo.domain.vo.HotArtcileList;
 import com.woo.domain.vo.PageVo;
@@ -14,6 +16,7 @@ import com.woo.mapper.ArticleMapper;
 import com.woo.service.ArticleService;
 import com.woo.service.CategoryService;
 import com.woo.util.BeanCopyUtils;
+import com.woo.util.RedisCache;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -65,5 +68,31 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         //封装查询的结果
         List<ArticleListVo> articleListVos = BeanCopyUtils.copyBeanList(articles, ArticleListVo.class);
         return ResponseResult.okResult(new PageVo(articleListVos, page.getTotal()));
+    }
+
+    @Override
+    public ResponseResult getArticleDetail(Long id) {
+        //根据id查询文章
+        Article article = getById(id);
+        //从Redis中获取viewCount
+        Integer viewCount = redisCache.getCacheMapValue("article:viewCount", id.toString());
+        article.setViewCount(viewCount.longValue());
+        //转换成Vo
+        ArticleDetailVo articleDetailVo = BeanCopyUtils.copyBean(article, ArticleDetailVo.class);
+        //根据分类id查询分类名
+        Category category = categoryService.getById(id);
+        if (category != null){
+            articleDetailVo.setCategoryName(category.getName());
+        }
+        //封装相应
+        return ResponseResult.okResult(articleDetailVo);
+    }
+    @Autowired
+    RedisCache redisCache;
+    @Override
+    public ResponseResult updateViewCount(Long id) {
+        //更新redis中对应的id的浏览量
+        redisCache.incrementCacheMapValue("article:viewCount", id.toString(), 1);
+        return ResponseResult.okResult();
     }
 }
