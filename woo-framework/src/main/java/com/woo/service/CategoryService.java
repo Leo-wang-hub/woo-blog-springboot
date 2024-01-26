@@ -12,4 +12,8 @@ import com.woo.domain.entity.Category;
 public interface CategoryService extends IService<Category> {
 
     ResponseResult getCategoryList();
+
+    ResponseResult listAllCategory();
+
+    ResponseResult listAllCategory(Category category, Integer pageNum, Integer pageSize);
 }

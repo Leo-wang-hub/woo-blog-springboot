@@ -4,6 +4,7 @@ import com.woo.annotation.mySystemlog;
 import com.woo.domain.ResponseResult;
 import com.woo.domain.entity.User;
 import com.woo.service.UserService;
+import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,6 +12,7 @@ import static net.sf.jsqlparser.util.validation.metadata.NamedObject.user;
 
 @RestController
 @RequestMapping("/user")
+@Api(tags = "用户的相关文档", description = "用户相关接口文档描述")
 public class UserController {
     @Autowired
     private UserService userService;

@@ -4,6 +4,8 @@ import com.woo.annotation.mySystemlog;
 import com.woo.domain.ResponseResult;
 import com.woo.domain.entity.Article;
 import com.woo.service.ArticleService;
+import io.swagger.annotations.Api;
+import org.apiguardian.api.API;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,6 +14,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/article")
+@Api(tags = "文章的相关接口文档",description = "文章接口文档描述")
 public class ArticleController {
     @Autowired
     private ArticleService articleService;

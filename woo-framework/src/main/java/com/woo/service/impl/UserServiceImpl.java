@@ -1,12 +1,17 @@
 package com.woo.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.woo.domain.ResponseResult;
 import com.woo.domain.entity.User;
+import com.woo.domain.entity.UserRole;
+import com.woo.domain.vo.PageVo;
 import com.woo.domain.vo.UserInfoVo;
+import com.woo.domain.vo.UserVo;
 import com.woo.enums.AppHttpCodeEnum;
 import com.woo.exception.SystemException;
 import com.woo.mapper.UserMapper;
+import com.woo.service.UserRoleService;
 import com.woo.service.UserService;
 import com.woo.util.BeanCopyUtils;
 import com.woo.util.SecurityUtils;
@@ -14,7 +19,13 @@ import net.sf.jsqlparser.util.validation.metadata.NamedObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 /**
  * 用户表(User)表服务实现类
@@ -75,6 +86,68 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
          save(user);
          return ResponseResult.okResult();
      }
+
+    @Override
+    public ResponseResult selectUserPage(User user, Integer pageNum, Integer pageSize) {
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.like(StringUtils.hasText(user.getUserName()), User::getUserName, user.getUserName());
+        queryWrapper.eq(StringUtils.hasText(user.getStatus()), User::getStatus, user.getStatus());
+        queryWrapper.eq(StringUtils.hasText(user.getPhonenumber()), User::getPhonenumber, user.getPhonenumber());
+        Page<User> page = new Page<User>(pageNum, pageSize);
+        page(page, queryWrapper);
+        return ResponseResult.okResult(new PageVo(BeanCopyUtils.copyBeanList(page.getRecords(), UserVo.class), page.getTotal()));
+    }
+
+    @Override
+    public boolean checkUserNameUnique(String userName) {
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(User::getUserName, userName);
+        return count(queryWrapper) == 0 ;
+    }
+
+    @Override
+    public boolean checkPhoneUnique(String phoneNumber) {
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(User::getPhonenumber, phoneNumber);
+        return count(queryWrapper) == 0;
+    }
+
+    @Override
+    public boolean checkEmailUnique(User user) {
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(User::getEmail, user.getEmail());
+        return count(queryWrapper) == 0;
+    }
+
+    @Override
+    public ResponseResult addUser(User user) {
+         //对密码进行加密
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        save(user);
+        if(user.getRoleIds() != null && user.getRoleIds().length >0){
+            insertUserRole(user);
+        }
+        return ResponseResult.okResult();
+    }
+
+    @Override
+    @Transactional
+    public void updateUser(User user) {
+        //删除用户与角色关联
+        LambdaQueryWrapper<UserRole> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UserRole::getUserId, user.getId());
+        userRoleService.remove(queryWrapper);
+        //新增用户和角色管理
+        insertUserRole(user);
+        updateById(user);
+    }
+
+    @Autowired
+    UserRoleService userRoleService;
+    private void insertUserRole(User user) {
+        List<UserRole> sysUserRoles = Arrays.stream(user.getRoleIds()).map(roleId -> new UserRole(user.getId(), roleId)).collect(Collectors.toList());
+        userRoleService.saveBatch(sysUserRoles);
+    }
 
     private boolean emailExist(String email) {
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();

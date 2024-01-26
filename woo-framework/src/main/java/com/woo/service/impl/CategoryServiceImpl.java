@@ -1,11 +1,13 @@
 package com.woo.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.woo.constants.SystemCantants;
 import com.woo.domain.ResponseResult;
 import com.woo.domain.entity.Article;
 import com.woo.domain.entity.Category;
 import com.woo.domain.vo.CategoryVo;
+import com.woo.domain.vo.PageVo;
 import com.woo.mapper.CategoryMapper;
 import com.woo.service.ArticleService;
 import com.woo.service.CategoryService;
@@ -13,6 +15,7 @@ import com.woo.util.BeanCopyUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Set;
@@ -46,4 +49,27 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
    return ResponseResult.okResult(categoryVos);
 
   }
- }
+
+    @Override
+    public ResponseResult listAllCategory() {
+        LambdaQueryWrapper<Category> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Category::getStatus, SystemCantants.NORMAL);
+        List<Category> list = list(queryWrapper);
+        List<CategoryVo> categoryVos = BeanCopyUtils.copyBeanList(list, CategoryVo.class);
+
+        return ResponseResult.okResult(categoryVos);
+    }
+
+    @Override
+    public ResponseResult listAllCategory(Category category,Integer pageNum, Integer pageSize) {
+        LambdaQueryWrapper<Category> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.like(StringUtils.hasText(category.getName()), Category::getName, category.getName());
+        queryWrapper.like(StringUtils.hasText(category.getStatus()), Category::getStatus, category.getStatus());
+        Page<Category> page = new Page<>(pageNum, pageSize);
+        page(page, queryWrapper);
+        List<Category> categoryList = page.getRecords();
+        List<CategoryVo> categoryVos = BeanCopyUtils.copyBeanList(categoryList, CategoryVo.class);
+
+        return ResponseResult.okResult(new PageVo(categoryVos,page.getTotal()));
+    }
+}

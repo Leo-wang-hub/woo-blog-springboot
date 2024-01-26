@@ -39,4 +39,8 @@ public class SystemCantants {
      *评论类型为：友链评论
      */
     public static final String  LINK_COMMENT = "1";
+    public static final String MENU = "C";
+    public static final String BUTTON = "F";
+    public static final String NORMAL = "0";
+    public static final String IS_ADMIN = "1";
 }

@@ -12,6 +12,10 @@ spring:
       max-file-size: 2MB
 #      HTTP请求中包含的所有文件的总大小的最大允许值
       max-request-size: 5MB
+  mvc:
+    pathmatch:
+      #springboot 2.6在之后需要配置ant_path_mathcer才能使swagger生成接口文档生效
+      matching-strategy: ant_path_matcher
 mybatis-plus:
 #  configuration:
 #    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
