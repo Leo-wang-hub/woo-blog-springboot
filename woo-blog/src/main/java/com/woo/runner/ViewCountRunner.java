@@ -18,6 +18,7 @@ public class ViewCountRunner implements CommandLineRunner {
     private RedisCache redisCache;
     @Override
     public void run(String... args) throws Exception {
+        System.out.println("==========博客项目启动成功==========");
         // 查询数据库中的博客信息
         List<Article> articles = articleMapper.selectList(null);
         Map<String, Integer> viewCountMap= articles.stream().collect(Collectors.toMap(article -> article.getId().toString(),article ->article.getViewCount().intValue()));

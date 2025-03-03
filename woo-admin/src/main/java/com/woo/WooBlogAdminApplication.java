@@ -9,5 +9,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class WooBlogAdminApplication {
     public static void main(String[] args) {
         SpringApplication.run(WooBlogAdminApplication.class, args);
+        System.out.println("BlogAdmin 启动成功");
     }
 }

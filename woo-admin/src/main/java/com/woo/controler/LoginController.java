@@ -27,6 +27,7 @@ import java.util.List;
 public class LoginController {
     @Autowired
     private LoginService loginService;
+    // 管理端 用户名密码 sg   1234
     @PostMapping("/user/login")
     public ResponseResult login(@RequestBody User user){
         if(!StringUtils.hasText(user.getUserName())){

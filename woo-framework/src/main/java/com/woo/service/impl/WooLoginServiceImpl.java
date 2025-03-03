@@ -30,7 +30,6 @@ public class WooLoginServiceImpl implements WooLoginService {
     @Override
     public ResponseResult login(User user) {
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user.getUserName(), user.getPassword());
-
         Authentication authenticate = authenticationManager.authenticate(authenticationToken);
         //判断是否认证通过
         if(Objects.isNull(authenticate)){
